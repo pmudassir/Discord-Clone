@@ -22,6 +22,8 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { FileUpload } from "@/components/file-upload";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Server name is required." }),
@@ -30,6 +32,8 @@ const formSchema = z.object({
 
 export const InitialModal = () => {
   const [isMounted, setIsMounted] = useState(false); // prevents the hydration error
+
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
@@ -46,7 +50,15 @@ export const InitialModal = () => {
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      await axios.post("/api/servers", values);
+
+      form.reset();
+      router.refresh();
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (!isMounted) return null;
